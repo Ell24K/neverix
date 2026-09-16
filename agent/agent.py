@@ -1,7 +1,7 @@
 import tkinter as tk
 import socketio
 
-SERVER_URL = "neverix-production.up.railway.app"
+SERVER_URL = "https://neverix-production.up.railway.app"
 
 sio = socketio.Client(
     reconnection=True,
