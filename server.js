@@ -12,9 +12,13 @@ const MAX_CLIENTS = 5;
 const clients = new Map();
 
 const allowedCommands = new Set([
-  "SHOW_BREACH",
-  "MATRIX",
-  "SHOW_MESSAGE",
+  "RANSOMWARE",
+  "BSOD",
+  "GHOST_MOUSE",
+  "FORMAT_C",
+  "DATA_LEAK",
+  "POPUP_SPAM",
+  "WALLPAPER",
   "RESTORE"
 ]);
 
