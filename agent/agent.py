@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 import socketio
 
@@ -15,7 +16,6 @@ root.withdraw()
 
 def show_screen(title, message):
     root.deiconify()
-
     root.title(title)
     root.geometry("900x500")
     root.configure(bg="black")
@@ -48,7 +48,7 @@ def disconnect():
 @sio.on("assigned-id")
 def assigned_id(data):
     global pc_id
-    pc_id = data["id"]
+    pc_id = data.get("id", "UNKNOWN") if isinstance(data, dict) else str(data)
 
 @sio.on("lab-full")
 def lab_full():
@@ -99,6 +99,13 @@ def agent_command(data):
     elif command == "RESTORE":
         root.after(0, restore)
 
-sio.connect(SERVER_URL)
+def run_socket():
+    try:
+        sio.connect(SERVER_URL, transports=["websocket", "polling"])
+        sio.wait()
+    except Exception:
+        pass
+
+threading.Thread(target=run_socket, daemon=True).start()
 
 root.mainloop()
