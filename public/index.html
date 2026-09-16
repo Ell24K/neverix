@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RPL Cyber Control</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #050505;
+    color: #00ff66;
+    font-family: Consolas, monospace;
+}
+
+header {
+    padding: 24px;
+    border-bottom: 1px solid #123;
+}
+
+h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+main {
+    max-width: 1000px;
+    margin: auto;
+    padding: 24px;
+}
+
+.status {
+    padding: 16px;
+    margin-bottom: 20px;
+    background: #090909;
+    border: 1px solid #123;
+}
+
+.clients {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(170px,1fr));
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.client {
+    padding: 20px;
+    background: #090909;
+    border: 1px solid #123;
+}
+
+.online {
+    margin-top: 8px;
+}
+
+.controls {
+    display: grid;
+    gap: 10px;
+}
+
+button {
+    padding: 16px;
+    background: #080808;
+    color: #00ff66;
+    border: 1px solid #00ff66;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #00ff66;
+    color: #000;
+}
+
+.restore {
+    color: #ff4444;
+    border-color: #ff4444;
+}
+
+#log {
+    margin-top: 25px;
+    padding: 15px;
+    height: 180px;
+    overflow-y: auto;
+    background: #020202;
+    border: 1px solid #123;
+    font-size: 13px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>RPL CYBER CONTROL</h1>
+</header>
+
+<main>
+
+<div class="status">
+    STATUS:
+    <span id="status">CONNECTING...</span>
+</div>
+
+<div class="clients" id="clients"></div>
+
+<div class="controls">
+    <button onclick="sendCommand('SHOW_BREACH')">
+        INITIATE FAKE BREACH
+    </button>
+
+    <button onclick="sendCommand('MATRIX')">
+        MATRIX MODE
+    </button>
+
+    <button onclick="sendCommand('SHOW_MESSAGE','RPL CYBER LAB')">
+        SHOW MESSAGE
+    </button>
+
+    <button class="restore" onclick="sendCommand('RESTORE')">
+        RESTORE ALL
+    </button>
+</div>
+
+<div id="log"></div>
+
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+const socket = io();
+
+const status = document.getElementById("status");
+const clients = document.getElementById("clients");
+const logBox = document.getElementById("log");
+
+function log(message) {
+    const line = document.createElement("div");
+
+    line.textContent =
+        `[${new Date().toLocaleTimeString()}] ${message}`;
+
+    logBox.prepend(line);
+}
+
+socket.on("connect", () => {
+    status.textContent = "CONNECTED";
+    socket.emit("controller-auth");
+    log("Control Hub connected");
+});
+
+socket.on("controller-authenticated", data => {
+    status.textContent = "CONTROL READY";
+    renderClients(data.clients);
+});
+
+socket.on("client-list", list => {
+    renderClients(list);
+});
+
+function renderClients(list) {
+    clients.innerHTML = "";
+
+    for (let i = 1; i <= 5; i++) {
+        const id = `PC${String(i).padStart(2,"0")}`;
+        const online = list.includes(id);
+
+        const element = document.createElement("div");
+
+        element.className = "client";
+
+        element.innerHTML = `
+            <strong>${id}</strong>
+            <div class="online">
+                ${online ? "🟢 ONLINE" : "⚫ OFFLINE"}
+            </div>
+        `;
+
+        clients.appendChild(element);
+    }
+}
+
+function sendCommand(command, payload = null) {
+    socket.emit("command", {
+        target: "ALL",
+        command,
+        payload
+    });
+
+    log(`Command sent: ${command}`);
+}
+</script>
+
+</body>
+</html>
